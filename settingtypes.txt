@@ -1,0 +1,9 @@
+[Craftable Commandblock]
+
+# Space-separated list of authorized commands
+# Empty to authorize all
+digilines_commandblock.authorized_commands (Authorized commands) string tell
+
+# Maximum distance of the @nearest player
+# Any value less than or equal to 0 will be changed to 1 and a NaN value will be changed to the default value
+digilines_commandblock.nearest_max_distance (Nearest player maximum distance) float 8
