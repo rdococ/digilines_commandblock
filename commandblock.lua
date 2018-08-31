@@ -2,7 +2,7 @@ local function initialize_data(meta)
 	local commands = minetest.formspec_escape(meta:get_string("commands"))
 	meta:set_string("formspec",
 		"invsize[9,7;]" ..
-		"textarea[0.5,0.5;8.5,4;commands;Commands;"..commands.."]" ..
+		"textarea[0.5,0.5;8.5,4;commands;Commands;" .. commands .. "]" ..
 		"label[1,4;${key} is replaced with the corresponding value]" ..
 		"label[0.9,4.875;channel]" .. 
 		"field[2.5,5;4,1;channel;;${channel}]" ..
@@ -15,7 +15,7 @@ local function initialize_data(meta)
 	end
 	meta:set_string("infotext", "Digilines Command Block\n" ..
 		"(" .. owner .. ")\n" ..
-		"Commands: "..commands .. "\n" ..
+		"Commands: ".. meta:get_string("commands") .. "\n" ..
 		"Channel: " .. meta:get_string("channel"))
 end
 
@@ -111,7 +111,13 @@ local function resolve_commands(commands, pos, channel, message, craftable)
 		message = {msg = message}
 	end
 	commands = commands:gsub("%${([^}]-)}", function (key)
-		return tostring(message[key])
+		local value = message[key]
+		
+		if type(value) == "table" and value.x and value.y and value.z then
+			return tostring(value.x) .. " " .. tostring(value.y) .. " " .. tostring(value.z)
+		end
+		
+		return tostring(value)
 	end)
 	
 	return commands
@@ -119,7 +125,13 @@ end
 
 local function commandblock_action_on(pos, node, channel, message)
 	local craftable = node.name == "digilines_commandblock:craftable_commandblock_off"
-	if node.name ~= "digilines_commandblock:commandblock_off" and not craftable then
+	local nodes = {
+		["digilines_commandblock:commandblock_off"] = true,
+		["digilines_commandblock:commandblock_on"] = true,
+		["digilines_commandblock:craftable_commandblock_off"] = true
+	}
+	
+	if not nodes[node.name] then
 		return
 	end
 	
@@ -149,6 +161,7 @@ local function commandblock_action_on(pos, node, channel, message)
 
 	local commands = resolve_commands(meta:get_string("commands"), pos, channel, message, craftable)
 	if not commands then return end
+	local success, output, to_cb
 	for _, command in pairs(commands:split("\n")) do
 		local pos = command:find(" ")
 		local cmd, param = command, ""
@@ -157,7 +170,7 @@ local function commandblock_action_on(pos, node, channel, message)
 			param = command:sub(pos + 1)
 		end
 		local cmddef = minetest.chatcommands[cmd]
-		if not accepted_commands[cmd] and next(accepted_commands) then
+		if craftable and not accepted_commands[cmd] and next(accepted_commands) then
 			minetest.chat_send_player(owner, "You can not execute the command "..cmd.." with a craftable command block! This event will be reported.")
 			minetest.log("action", "Player "..owner.." tryed to execute an unauthorized command with a craftable command block.")
 			return
@@ -174,7 +187,11 @@ local function commandblock_action_on(pos, node, channel, message)
 					..table.concat(missing_privs, ", ")..")")
 			return
 		end
-		cmddef.func(owner, param)
+		success, output, to_cb = cmddef.func(owner, param)
+	end
+	
+	if to_cb then
+		digiline:receptor_send(pos, digiline.rules.default, channel, output)
 	end
 end
 
