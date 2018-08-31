@@ -87,15 +87,14 @@ local function resolve_commands(commands, pos, channel, message)
 	commands = commands:gsub("@farthest", farthest)
 	commands = commands:gsub("@random", random)
 	
-	if channel and message then
-		if meta:get_string("channel") ~= channel then return end
-		if type(message) ~= "table" then
-			message = {msg = message}
-		end
-		for parameter, value in pairs(message) do
-			commands = commands:gsub("%${" .. parameter:gsub("([^%w])", "%%%1") .. "}", tostring(value) or "")
-		end
+	-- If the message isn't a table, wrap it in a table
+	-- Then, substitute "${" .. key .. "}" for message[key]
+	if type(message) ~= "table" then
+		message = {msg = message}
 	end
+	commands = commands:gsub("%${([^}]-)}", function (key)
+		return tostring(message[key])
+	end)
 	
 	return commands
 end
@@ -105,13 +104,12 @@ local function commandblock_action_on(pos, node, channel, message)
 		return
 	end
 	
-	if channel or message then
-		minetest.get_node_timer(pos):start(1)
-	end
-	
-	minetest.swap_node(pos, {name = "digilines_commandblock:commandblock_on"})
-
 	local meta = minetest.get_meta(pos)
+	if meta:get_string("channel") ~= channel then return end
+	
+	minetest.get_node_timer(pos):start(1)
+	minetest.swap_node(pos, {name = "digilines_commandblock:commandblock_on"})
+	
 	local owner = meta:get_string("owner")
 	if owner == "" then
 		return
