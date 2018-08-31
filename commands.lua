@@ -29,7 +29,7 @@ minetest.register_chatcommand("set_node", {
 			return false, is_cb and {success = false, message = "must be in creative inventory", pos = pos, node = node} or "must be in creative inventory", true
 		end
 		
-		minetest.place_node(pos, node)
+		minetest.set_node(pos, node)
 		
 		return true, is_cb and {success = true, pos = pos, node = node} or "success", true
 	end
