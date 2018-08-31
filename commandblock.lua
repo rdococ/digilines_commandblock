@@ -187,7 +187,7 @@ local function commandblock_action_on(pos, node, channel, message)
 					..table.concat(missing_privs, ", ")..")")
 			return
 		end
-		success, output, to_cb = cmddef.func(owner, param)
+		success, output, to_cb = cmddef.func(owner, param, true)
 	end
 	
 	if to_cb then
