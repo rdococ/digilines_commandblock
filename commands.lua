@@ -25,8 +25,11 @@ minetest.register_chatcommand("set_node", {
 		if not def then
 			return false, is_cb and {success = false, message = "invalid node", pos = pos, node = node} or "invalid node", true
 		end
+		if type(def.not_in_creative_inventory) == "number" and def.not_in_creative_inventory > 0 then
+			return false, is_cb and {success = false, message = "must be in creative inventory", pos = pos, node = node} or "must be in creative inventory", true
+		end
 		
-		minetest.set_node(pos, node)
+		minetest.place_node(pos, node)
 		
 		return true, is_cb and {success = true, pos = pos, node = node} or "success", true
 	end
