@@ -1,6 +1,6 @@
 minetest.register_chatcommand("set_node", {
-	params = "<x> <y> <z> <name>",
-	description = "Sets the node at the specific position without worldedit",
+	params = "<x> <y> <z> <name> [param1] [param2]",
+	description = "Set the node at the specified position",
 	privs = {interact = true, creative = true},
 	func = function (name, param)
 		local params = {}
