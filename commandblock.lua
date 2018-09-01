@@ -62,6 +62,8 @@ local function resolve_commands(commands, pos, channel, message, craftable)
 
 	-- No players online: remove all commands containing
 	-- @nearest, @farthest and @random
+	-- Don't return here, we still have more resolving
+	-- to do with ${parameters}
 	if #players == 0 then
 		commands = commands:gsub("[^\r\n]+", function (line)
 			if line:find("@nearest") then return "" end
@@ -69,7 +71,14 @@ local function resolve_commands(commands, pos, channel, message, craftable)
 			if line:find("@random") then return "" end
 			return line
 		end)
-		return commands
+	end
+	
+	local owner_player = minetest.get_player_by_name(owner)
+	if not owner_player then
+		commands = commands:gsub("[^\r\n]+", function (line)
+			if line:find("@owner") then return "" end
+			return line
+		end)
 	end
 
 	local nearest, farthest = nil, nil
@@ -92,6 +101,7 @@ local function resolve_commands(commands, pos, channel, message, craftable)
 		nearest_in_commands = true
 		return nearest
 	end)
+	commands = commands:gsub("@owner", owner)
 	
 	if craftable then
 		if nearest_in_commands and not nearest then

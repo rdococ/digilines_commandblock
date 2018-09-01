@@ -1,3 +1,5 @@
+if not digilines_commandblock.setting("node_manipulation_commands", false) then return end
+
 minetest.register_chatcommand("set_node", {
 	params = "<x> <y> <z> <name> [param1] [param2]}",
 	description = "Set the node at the specified position\n" ..
@@ -38,7 +40,7 @@ minetest.register_chatcommand("set_node", {
 minetest.register_chatcommand("get_node", {
 	params = "<x> <y> <z>",
 	description = "Get the node at the specified position\n" ..
-		"returns: success, (message), pos, node",
+		"returns: success, (message), (pos), (node)",
 	privs = {interact = true, creative = true},
 	func = function (name, param, is_cb)
 		local params = {}
